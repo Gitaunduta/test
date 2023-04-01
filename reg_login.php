@@ -18,50 +18,56 @@ $pass1=validate($_POST["pass1"]);
 $pass2=validate($_POST["pass2"]);
 $errors=array();*/
 
+// This line connect to the database
 include "conn.php";
 
-
-$pass1=$conn->real_escape_string($_POST['pass1']);
-$pass2=$conn->real_escape_string($_POST['pass2']);
-if($pass1!=$pass2)
+//This is the function to validate the data keyed in with the user
+function validData($x)
 {
-    echo '<script type="text/javascript">
-    alert("please  ensure password match! :-)"); 						
-    window.location="register.php"; 
-</script>';
-
+    $x=trim($x);
+    $x=htmlspecialchars($x);
+    $x=stripslashes($x);
+    return $x;
 }
 
+//Here we check if the submit button has been set or clicked
 if(isset($_POST['submit']))
 {
+    //Here we are getting the passwords and compare them to see if they match
+    $pass1 = $conn->real_escape_string(md5($_POST["pass1"]));
+    $pass2 = $conn->real_escape_string(md5($_POST["pass2"]));
     
-    function validData($x)
+    //Test if the passwords keyed in match
+    if($pass1 != $pass2)
     {
-        $x=trim($x);
-        $x=htmlspecialchars($x);
-        $x=stripslashes($x);
-        return $x;
+        echo '<script type="text/javascript">
+        alert("please  ensure password match! :-)"); 						
+        window.location="register.php"; 
+        </script>';
+        die();
     }
 
-        $stmt=$conn->prepare("INSERT INTO userstbl (fname,email,pnumber,pasword) VALUES(?,?,?,?)");
-        $stmt->bind_param("ssss",$fname,$email,$pnumber,$password);
+    //Here we use the prepared stamemets to query the database
+    $stmt = $conn->prepare("INSERT INTO userstbl (fname,email,pnumber,pasword) VALUES(?,?,?,?)");
+    $stmt->bind_param("ssss",$fname,$email,$pnumber,$password);
         
-        $fname=validData($_POST['fname']);
-        $email=validData($_POST['email']);
-        $pnumber=validData($_POST['phone']);
-        $password=md5($_POST['pass2']);
+    $fname = validData($_POST['fname']);
+    $email = validData($_POST['email']);
+    $pnumber = validData($_POST['phone']);
+    $password = md5($_POST['pass2']);
 
-        $stmt->execute();
+    //Executing the database
+    $stmt->execute();
 
-        echo '<script type="text/javascript">
-						alert("YOU HAVE REGISTERED SUCCESSFULLY! :-)"); 						
-						window.location="login.php"; 
-					</script>';
+    //On success we redirect the page to login.php
+    echo '<script type="text/javascript">
+		alert("YOU HAVE REGISTERED SUCCESSFULLY! :-)"); 						
+		window.location="login.php"; 
+		</script>';
     
-        $stmt->close();
-        $conn->close();
-        
-    
+    $stmt->close();
 }
+
+$conn->close();
 
 ?>
